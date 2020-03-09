@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer');
+const { performance } = require('perf_hooks');
 
 const autoScroll = async page => {
   await page.evaluate(async () => {
@@ -14,7 +15,7 @@ const autoScroll = async page => {
           clearInterval(timer);
           resolve();
         }
-      }, 50);
+      }, 100);
     });
   });
 };
@@ -55,13 +56,15 @@ async function getTweetsBySearch(searchString) {
   await page.keyboard.press('Enter');
   await page.waitForSelector('div[data-testid=tweet]');
 
-  for (let i = 0; i < 10; i++) {
+  const t0 = performance.now();
+  for (let i = 0; i < 15; i++) {
     await autoScroll(page);
     await delay(200);
     const tweets = await page.$$('div[data-testid=tweet] > div:nth-child(2) > div:nth-child(2)');
     await filterTweets(tweets);
   }
-
+  const t1 = performance.now();
+  console.log("Getting tweets: " + ((t1 - t0)/1000).toFixed(2) + " seconds.");
   return tweetsSet;
 }
 

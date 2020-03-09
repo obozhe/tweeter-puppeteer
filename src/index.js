@@ -8,8 +8,6 @@ const analyzeTweets = async searchString => {
   tweets.forEach(tweet => {
     const result = sentiment.analyze(tweet);
     sentimentResults.push(result);
-    console.log(result);
-    console.log('________________________________________________________');
   });
 
   const totalSentimentResult = sentimentResults.reduce(
@@ -26,6 +24,7 @@ const analyzeTweets = async searchString => {
 
   totalSentimentResult.score = totalSentimentResult.score / sentimentResults.length;
   totalSentimentResult.comparative = totalSentimentResult.comparative / sentimentResults.length;
+  totalSentimentResult.count = sentimentResults.length;
 
   console.log(totalSentimentResult);
 };
