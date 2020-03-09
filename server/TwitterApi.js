@@ -5,7 +5,7 @@ const autoScroll = async page => {
   await page.evaluate(async () => {
     await new Promise((resolve, reject) => {
       let totalHeight = 0;
-      const distance = 300;
+      const distance = 100;
       const timer = setInterval(() => {
         const scrollHeight = document.body.scrollHeight;
         window.scrollBy(0, distance);
@@ -15,7 +15,7 @@ const autoScroll = async page => {
           clearInterval(timer);
           resolve();
         }
-      }, 100);
+      }, 50);
     });
   });
 };
@@ -33,19 +33,20 @@ const typeText = async (page, selector, text) => {
 async function getTweetsBySearch(searchString) {
   const tweetsSet = new Set();
 
-  const filterTweets = async tweets => {
-    for await (let tweet of tweets) {
-      const text = await (await tweet.getProperty('innerText')).jsonValue();
-      if (!text.includes('Replying to')) {
-        tweetsSet.add(text);
+  const filterTweets = async response => {
+    try {
+      if (response.url().startsWith('https://api.twitter.com/2/search/adaptive.json')) {
+        const {
+          globalObjects: { tweets }
+        } = await response.json();
+        for (let [, tweet] of Object.entries(tweets)) {
+          if (!tweet.in_reply_to_status_id) tweetsSet.add(tweet.full_text);
+        }
       }
-    }
+    } catch (e) {}
   };
 
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox']
-  });
+  const browser = await puppeteer.launch();
 
   const page = await browser.newPage();
   await page.setUserAgent(
@@ -57,14 +58,13 @@ async function getTweetsBySearch(searchString) {
   await page.waitForSelector('div[data-testid=tweet]');
 
   const t0 = performance.now();
-  for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < 10; i += 1) {
+    page.on('response', filterTweets);
     await autoScroll(page);
-    await delay(200);
-    const tweets = await page.$$('div[data-testid=tweet] > div:nth-child(2) > div:nth-child(2)');
-    await filterTweets(tweets);
   }
+
   const t1 = performance.now();
-  console.log("Getting tweets: " + ((t1 - t0)/1000).toFixed(2) + " seconds.");
+  console.log('Getting tweets: ' + ((t1 - t0) / 1000).toFixed(2) + ' seconds.');
   return tweetsSet;
 }
 

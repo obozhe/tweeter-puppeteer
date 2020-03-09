@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "server": "nodemon server/index.js",
+    "client": "webpack-dev-server --mode development --open --hot",
+    "build": "webpack --mode production"
   },
   "author": "obozhe",
   "license": "MIT",
