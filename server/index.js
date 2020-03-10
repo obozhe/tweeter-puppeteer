@@ -1,33 +1,61 @@
+const path = require('path');
+const express = require('express');
+const app = express();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
+const port = process.env.PORT || 3000;
+
 const Sentiment = require('sentiment');
 const { getTweetsBySearch } = require('./TwitterApi');
 const sentiment = new Sentiment();
 
-const analyzeTweets = async searchString => {
+server.listen(port, () => {
+  console.log('Server listening at port %d', port);
+});
+
+// app.use(express.static(path.join(__dirname, '/../dist')));
+
+const analyzeTweets = async (searchString, socket) => {
+  const tweets = await getTweetsBySearch(searchString, socket);
+  if (!tweets) return;
   const sentimentResults = [];
-  const tweets = await getTweetsBySearch(searchString);
-  tweets.forEach(tweet => {
-    const result = sentiment.analyze(tweet);
-    sentimentResults.push(result);
+  Array.from(tweets).forEach((tweet, id) => {
+    const formattedTweet = tweet.replace(/https:\/\/t.co\/\w+/g, '');
+    const result = sentiment.analyze(formattedTweet);
+    sentimentResults.push({ id, tweet: formattedTweet, ...result });
   });
 
   const totalSentimentResult = sentimentResults.reduce(
-    (result, el) => {
-      result.score += el.score;
-      result.comparative += el.comparative;
-      if (el.score > 0) result.positive++;
-      if (el.score === 0) result.neutral++;
-      if (el.score < 0) result.negative++;
+    (result, tweet) => {
+      result.score += tweet.score;
+      result.comparative += tweet.comparative;
+      if (tweet.score > 0) result.positive++;
+      if (tweet.score === 0) result.neutral++;
+      if (tweet.score < 0) result.negative++;
       return result;
     },
     { score: 0, comparative: 0, positive: 0, neutral: 0, negative: 0 }
   );
 
-  totalSentimentResult.score = totalSentimentResult.score / sentimentResults.length;
-  totalSentimentResult.comparative = totalSentimentResult.comparative / sentimentResults.length;
+  totalSentimentResult.score = (totalSentimentResult.score / sentimentResults.length).toFixed(3);
+  totalSentimentResult.comparative = (
+    totalSentimentResult.comparative / sentimentResults.length
+  ).toFixed(3);
   totalSentimentResult.count = sentimentResults.length;
 
-  console.log(totalSentimentResult);
+  return { sentimentResults, totalSentimentResult };
 };
 
-const searchString = 'poutin';
-analyzeTweets(searchString);
+io.on('connection', socket => {
+  socket.on('search', async searchString => {
+    const result = await analyzeTweets(searchString, socket);
+    if (result) {
+      socket.emit('status', {
+        message: `Done! Analyzed ${result.totalSentimentResult.count} tweets.`,
+        done: true,
+        error: false
+      });
+      socket.emit('analyzeResult', result);
+    }
+  });
+});

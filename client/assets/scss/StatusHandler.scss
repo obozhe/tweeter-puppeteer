@@ -1,0 +1,48 @@
+.status-wrapper {
+  display: flex;
+  height: calc(100vh - 100px);
+  justify-content: center;
+  align-items: center;
+  font-family: 'Space Mono', monospace;
+  transition: 0.7s;
+  padding: 0 10px;
+
+  .status-list {
+    li {
+      list-style: none;
+      display: flex;
+      justify-content: start;
+      align-items: center;
+      svg {
+        margin-right: 10px;
+
+        &.spin {
+          animation-name: spin;
+          animation-duration: 1s;
+          animation-iteration-count: infinite;
+          animation-timing-function: linear;
+        }
+      }
+      span {
+        font-size: 1.3em;
+      }
+
+      &.done {
+        opacity: 0.5;
+
+        svg {
+          color: $main-green;
+        }
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

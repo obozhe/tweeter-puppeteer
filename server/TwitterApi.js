@@ -10,7 +10,6 @@ const autoScroll = async page => {
         const scrollHeight = document.body.scrollHeight;
         window.scrollBy(0, distance);
         totalHeight += distance;
-        console.log(totalHeight);
         if (totalHeight >= scrollHeight || totalHeight >= 5000) {
           clearInterval(timer);
           resolve();
@@ -20,19 +19,14 @@ const autoScroll = async page => {
   });
 };
 
-const delay = time =>
-  new Promise(function(resolve) {
-    setTimeout(resolve, time);
-  });
-
 const typeText = async (page, selector, text) => {
   await page.waitForSelector(selector);
   await page.type(selector, text);
 };
 
-async function getTweetsBySearch(searchString) {
+async function getTweetsBySearch(searchString, socket) {
   const tweetsSet = new Set();
-
+  socket.emit('status', { message: 'Connecting to Twitter...', done: false, error: false });
   const filterTweets = async response => {
     try {
       if (response.url().startsWith('https://api.twitter.com/2/search/adaptive.json')) {
@@ -47,15 +41,35 @@ async function getTweetsBySearch(searchString) {
   };
 
   const browser = await puppeteer.launch();
-
   const page = await browser.newPage();
   await page.setUserAgent(
     'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'
   );
-  await page.goto('https://twitter.com/explore');
+  await page.setRequestInterception(true);
+  page.on('request', request => {
+    const type = request.resourceType();
+    type === 'stylesheet' || type === 'image' ? request.abort() : request.continue();
+  });
+  try {
+    await page.goto('https://twitter.com/explore');
+    socket.emit('status', { message: 'Searching for tweets ...', done: false, error: false });
+  } catch (error) {
+    socket.emit('status', { message: 'Connection failed.', done: false, error: true });
+    return;
+  }
   await typeText(page, 'input[data-testid=SearchBox_Search_Input]', searchString);
   await page.keyboard.press('Enter');
-  await page.waitForSelector('div[data-testid=tweet]');
+  try {
+    await page.waitForSelector('div[data-testid=tweet]', { timeout: 10000 });
+  } catch (error) {
+    socket.emit('status', {
+      message: `No tweets found about ${searchString}.`,
+      done: false,
+      error: true
+    });
+    return;
+  }
+  socket.emit('status', { message: 'Parsing and analyzing tweets ...', done: false, error: false });
 
   const t0 = performance.now();
   for (let i = 0; i < 10; i += 1) {
