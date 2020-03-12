@@ -1,6 +1,8 @@
 const webpack = require('webpack');
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
+console.log();
 module.exports = {
   entry: path.resolve(__dirname, 'client', 'index.js'),
   output: {
@@ -36,10 +38,16 @@ module.exports = {
     extensions: ['*', '.js', '.jsx']
   },
   plugins: [
-    new webpack.HotModuleReplacementPlugin()
+    new webpack.HotModuleReplacementPlugin(),
+    new HtmlWebpackPlugin({
+      template: './client/public/index.html'
+    }),
+    new webpack.DefinePlugin({
+      DEVELOPMENT: JSON.stringify(process.env.WEBPACK_DEV_SERVER)
+    })
   ],
   devServer: {
-    contentBase: './dist',
+    contentBase: './client/public',
     hot: true
   }
 };
