@@ -52,32 +52,44 @@ async function getTweetsBySearch(searchString, socket) {
     type === 'stylesheet' || type === 'image' ? request.abort() : request.continue();
   });
 
-  page.on('error', err=> {
+  page.on('error', err => {
     console.log('error happen at the page: ', err);
   });
 
-  page.on('pageerror', pageerr=> {
+  page.on('pageerror', pageerr => {
     console.log('pageerror occurred: ', pageerr);
-  })
+  });
 
   try {
     await page.goto('https://twitter.com/explore');
+    let buffer = await page.screenshot({
+      fullPage: true,
+      type: 'png'
+    });
+    socket.emit('img', buffer);
     socket.emit('status', { message: 'Searching for tweets ...', done: false, error: false });
   } catch (error) {
     socket.emit('status', { message: 'Connection failed.', done: false, error: true });
     return;
   }
-  await typeText(page, 'input[data-testid=SearchBox_Search_Input]', searchString);
-  await page.keyboard.press('Enter');
-  await page.waitFor(5000)
 
-  await page.emulateMedia('screen')
-
-  const buffer = await page.screenshot({
+  await page.waitFor(5000);
+  await page.emulateMedia('screen');
+  let buffer = await page.screenshot({
     fullPage: true,
     type: 'png'
-  })
+  });
+  socket.emit('img', buffer);
 
+  await typeText(page, 'input[data-testid=SearchBox_Search_Input]', searchString);
+  await page.keyboard.press('Enter');
+
+  await page.waitFor(5000);
+  await page.emulateMedia('screen');
+  buffer = await page.screenshot({
+    fullPage: true,
+    type: 'png'
+  });
   socket.emit('img', buffer);
 
   try {
