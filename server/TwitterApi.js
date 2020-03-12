@@ -60,9 +60,17 @@ async function getTweetsBySearch(searchString, socket) {
   }
   await typeText(page, 'input[data-testid=SearchBox_Search_Input]', searchString);
   await page.keyboard.press('Enter');
-  await page.waitForNavigation();
-  const renderedContent = await page.evaluate(() => new XMLSerializer().serializeToString(document));  
-  console.log(renderedContent);
+  await page.waitFor(5000)
+
+  await page.emulateMedia('screen')
+
+  const buffer = await page.screenshot({
+    fullPage: true,
+    type: 'png'
+  })
+
+  socket.emit('img', buffer);
+
   try {
     await page.waitForSelector('div[data-testid=tweet]');
   } catch (error) {

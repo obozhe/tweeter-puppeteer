@@ -38,6 +38,16 @@ export default class App extends React.Component {
     this.socket.registerStatusUpdating(status => {
       this.setState({ statuses: [...this.state.statuses, status] });
     });
+
+    this.socket.regImg(img => {
+      console.log(img);
+      var arrayBufferView = new Uint8Array(img);
+      var blob = new Blob([arrayBufferView], { type: 'image/jpeg' });
+      var urlCreator = window.URL || window.webkitURL;
+      var imageUrl = urlCreator.createObjectURL(blob);
+      var img = document.querySelector('#photo');
+      img.src = imageUrl;
+    });
   }
 
   analyze(searchValue) {
@@ -63,6 +73,7 @@ export default class App extends React.Component {
         {!connected && !result && <Error />}
         <SearchPanel start={this.analyze} />
         <div className="main-section">
+          <img id="photo" src="" alt="" />
           <CSSTransition
             in={showStatusPanel}
             classNames="fade"

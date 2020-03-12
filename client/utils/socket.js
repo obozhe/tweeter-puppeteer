@@ -16,11 +16,16 @@ export default function(toogleConnectionState) {
     socket.on('analyzeResult', onResult);
   }
 
+  function regImg(img) {
+    socket.on('img', img);
+  }
+
   function registerStatusUpdating(onStatusUpdate) {
     socket.on('status', onStatusUpdate);
   }
 
   return {
+    regImg,
     startAnalyze,
     registerAnalyzeResults,
     registerStatusUpdating
