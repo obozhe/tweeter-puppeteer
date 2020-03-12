@@ -44,11 +44,13 @@ async function getTweetsBySearch(searchString, socket) {
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
   });
 
-  const page = await browser.newPage();
-  const client = await page.target().createCDPSession();
-  await client.send('Network.clearBrowserCookies');
-  await client.send('Network.clearBrowserCache');
-  
+  // const page = await browser.newPage();
+  // const client = await page.target().createCDPSession();
+  // await client.send('Network.clearBrowserCookies');
+  // await client.send('Network.clearBrowserCache');
+  const context = await browser.createIncognitoBrowserContext();
+  const page = await context.newPage();
+
   await page.setUserAgent(
     'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'
   );
