@@ -61,7 +61,7 @@ async function getTweetsBySearch(searchString, socket) {
   await typeText(page, 'input[data-testid=SearchBox_Search_Input]', searchString);
   await page.keyboard.press('Enter');
   try {
-    await page.waitForSelector('div[data-testid=tweet]', { timeout: 10000 });
+    await page.waitForSelector('div[data-testid=tweet]');
   } catch (error) {
     socket.emit('status', {
       message: `No tweets found about ${searchString}.`,
