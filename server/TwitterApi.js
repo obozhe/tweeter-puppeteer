@@ -60,6 +60,7 @@ async function getTweetsBySearch(searchString, socket) {
   }
   await typeText(page, 'input[data-testid=SearchBox_Search_Input]', searchString);
   await page.keyboard.press('Enter');
+  console.log(  await page.waitForSelector('input[data-testid=SearchBox_Search_Input]'));
   // try {
   //   await page.waitForSelector('div[data-testid=tweet]');
   // } catch (error) {
