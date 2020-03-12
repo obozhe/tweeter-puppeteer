@@ -40,16 +40,7 @@ async function getTweetsBySearch(searchString, socket) {
     } catch (e) {}
   };
 
-  const options = process.env.PORT
-    ? {
-        headless: true,
-        executablePath:
-          '/app/node_modules/puppeteer/node_modules/puppeteer/.local-chromium/linux-599821/chrome-linux/chrome',
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      }
-    : { headless: true };
-
-  const browser = await puppeteer.launch(options);
+  const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
 
   const page = await browser.newPage();
   await page.setUserAgent(
