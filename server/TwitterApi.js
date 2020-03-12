@@ -51,6 +51,15 @@ async function getTweetsBySearch(searchString, socket) {
     const type = request.resourceType();
     type === 'stylesheet' || type === 'image' ? request.abort() : request.continue();
   });
+
+  page.on('error', err=> {
+    console.log('error happen at the page: ', err);
+  });
+
+  page.on('pageerror', pageerr=> {
+    console.log('pageerror occurred: ', pageerr);
+  })
+
   try {
     await page.goto('https://twitter.com/explore');
     socket.emit('status', { message: 'Searching for tweets ...', done: false, error: false });
