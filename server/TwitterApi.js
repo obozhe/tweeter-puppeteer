@@ -60,17 +60,17 @@ async function getTweetsBySearch(searchString, socket) {
   }
   await typeText(page, 'input[data-testid=SearchBox_Search_Input]', searchString);
   await page.keyboard.press('Enter');
-  console.log(  await page.waitForSelector('input[data-testid=SearchBox_Search_Input]'));
-  // try {
-  //   await page.waitForSelector('div[data-testid=tweet]');
-  // } catch (error) {
-  //   socket.emit('status', {
-  //     message: `No tweets found about ${searchString}.`,
-  //     done: false,
-  //     error: true
-  //   });
-  //   return;
-  // }
+  console.log(page.url());
+  try {
+    await page.waitForSelector('div[data-testid=tweet]');
+  } catch (error) {
+    socket.emit('status', {
+      message: `No tweets found about ${searchString}.`,
+      done: false,
+      error: true
+    });
+    return;
+  }
   socket.emit('status', { message: 'Parsing and analyzing tweets ...', done: false, error: false });
 
   const t0 = performance.now();
