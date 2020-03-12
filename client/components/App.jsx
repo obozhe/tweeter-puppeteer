@@ -7,6 +7,7 @@ import { CSSTransition } from 'react-transition-group';
 import '../assets/scss/App.scss';
 import StatusHandler from './StatusHandler';
 import StatisticsPanel from './StatisticsPanel';
+import Error from './Error';
 
 export default class App extends React.Component {
   constructor() {
@@ -16,15 +17,19 @@ export default class App extends React.Component {
       showStatusPanel: false,
       showStatisticsPanel: false,
       statuses: [],
-      result: null
+      result: null,
+      connected: true
     };
 
-    this.socket = socket();
-
+    this.socket = null;
     this.analyze = this.analyze.bind(this);
   }
 
   componentDidMount() {
+    this.socket = socket(connected => {
+      this.setState({ connected });
+    });
+
     this.socket.registerAnalyzeResults(result => {
       console.log(result);
       this.setState({ result, showStatusPanel: false });
@@ -45,9 +50,17 @@ export default class App extends React.Component {
   }
 
   render() {
-    const { statuses, result, showStatusPanel, showStatisticsPanel } = this.state;
+    const {
+      statuses,
+      result,
+      showStatusPanel,
+      showStatisticsPanel,
+      connected,
+      loaded
+    } = this.state;
     return (
       <div>
+        {!connected && !result && <Error />}
         <SearchPanel start={this.analyze} />
         <div className="main-section">
           <CSSTransition

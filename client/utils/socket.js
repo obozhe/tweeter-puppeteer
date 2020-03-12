@@ -1,10 +1,12 @@
 const io = require('socket.io-client');
 
-export default function() {
+export default function(toogleConnectionState) {
   const port = DEVELOPMENT ? 'http://localhost:3000' : '';
   const socket = io.connect(port);
 
-  socket.on('error', err => console.log('socket error:', err));
+  socket.on('connect', () => toogleConnectionState(true));
+  socket.on('disconnect', () => toogleConnectionState(false));
+  socket.on('error', () => toogleConnectionState(false));
 
   function startAnalyze(searchString) {
     socket.emit('search', searchString);

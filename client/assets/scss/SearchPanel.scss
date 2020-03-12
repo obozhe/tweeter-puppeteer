@@ -1,7 +1,6 @@
 .search-panel-wrapper {
   height: 100vh;
   background: $main-green;
-  position: relative;
   transition: 0.7s;
   box-shadow: 0px 5px 10px #0000004f;
   position: fixed;
@@ -12,44 +11,57 @@
 
   .search-panel {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    box-shadow: 0px 5px 10px #0000004f;
-    border-radius: 15px;
 
-    input {
-      height: 60px;
-      width: 600px;
-      border: 5px solid #ffffff;
-      padding: 0 5px;
-      border-radius: 15px 0 0 15px;
-      font-size: 2em;
-      outline: none;
+    .search-panel-text {
+      font-size: 1.3em;
+      margin-bottom: 10px;
+      color: $almost-white;
     }
 
-    button {
-      height: 60px;
-      width: 80px;
-      background: #a5f082;
-      padding: 10px;
-      border-radius: 0 15px 15px 0;
-      outline: none;
-      transition: 0.3s;
+    .search-panel-input {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0px 5px 10px #0000004f;
+      border-radius: 15px;
 
-      svg {
-        transition: 0.3s;
-        font-size: 1.5em;
-        color: #414141e5;
+      input {
+        height: 60px;
+        width: 600px;
+        border: 5px solid $white;
+        padding: 0 5px;
+        border-radius: 15px 0 0 15px;
+        font-size: 2em;
+        outline: none;
       }
 
-      &:disabled {
-        background: #b8eba1;
+      button {
+        height: 60px;
+        width: 80px;
+        background: $main-button-green;
+        padding: 10px;
+        border-radius: 0 15px 15px 0;
+        outline: none;
+        transition: 0.3s;
+
         svg {
-          color: #4141418a;
+          transition: 0.3s;
+          font-size: 1.5em;
+          color: rgba($dark-gray, 0.9);
+        }
+
+        &:disabled {
+          background: $main-button-green-disabled;
+          svg {
+            color: rgba($dark-gray, 0.5);
+          }
         }
       }
     }
@@ -58,5 +70,19 @@
   &.collapsed {
     height: 100px;
     font-size: 12px;
+  }
+}
+
+@keyframes hide {
+  0% {
+    opacity: 1;
+    display: block;
+  }
+  99% {
+    display: block;
+  }
+  100% {
+    opacity: 0;
+    display: none;
   }
 }
