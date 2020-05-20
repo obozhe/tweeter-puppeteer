@@ -3,7 +3,9 @@ import Spinner from '@material-ui/icons/DonutLargeRounded';
 import Done from '@material-ui/icons/DoneOutlineRounded';
 import Error from '@material-ui/icons/Error';
 
-const StatusHandler = ({ statuses }) => {
+import './StatusHandler.scss';
+
+export default function StatusHandler({ statuses }) {
   return (
     <div className="status-wrapper">
       <ul className="status-list">
@@ -28,6 +30,4 @@ const StatusHandler = ({ statuses }) => {
       </ul>
     </div>
   );
-};
-
-export default StatusHandler;
+}

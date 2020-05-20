@@ -1,63 +1,49 @@
 const path = require('path');
+const bodyParser = require('body-parser');
 const express = require('express');
+const mongoose = require('mongoose');
 const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
-const port = process.env.PORT || 3000;
 
-const Sentiment = require('sentiment');
-const { getTweetsBySearch } = require('./TwitterApi');
-const sentiment = new Sentiment();
+const RestController = require('./controllers/RestController');
+const SocketController = require('./controllers/SocketController');
+
+const port = process.env.PORT || 3000;
+const dbHost = 'mongodb://localhost/twitter-analysis';
+
+if (process.env.NODE_ENV === 'production') app.use(express.static(path.join(__dirname, '../dist')));
+
+mongoose.connect(dbHost, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+const db = mongoose.connection;
+
+db.on('error', console.error.bind(console, 'connection error:'));
+
+io.on('connection', (socket) => {
+  socket.on('search', SocketController.search.bind(SocketController, socket));
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  const allowCrossDomain = function (_, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', '*');
+    res.header('Access-Control-Allow-Methods', '*');
+    next();
+  };
+  app.use(allowCrossDomain);
+}
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.text());
+app.use(bodyParser.json({ type: 'application/json' }));
+
+app.route('/api/results').get(RestController.getResults).post(RestController.saveResults);
+app.route('/api/:id').get(RestController.getResultsById).delete(RestController.deleteResultsById);
 
 server.listen(port, () => {
   console.log('Server listening at port %d', port);
-});
-
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../dist')));
-}
-
-const analyzeTweets = async (searchString, socket) => {
-  const tweets = await getTweetsBySearch(searchString, socket);
-  if (!tweets) return;
-  const sentimentResults = [];
-  Array.from(tweets).forEach((tweet, id) => {
-    const formattedTweet = tweet.replace(/https:\/\/t.co\/\w+/g, '');
-    const result = sentiment.analyze(formattedTweet);
-    sentimentResults.push({ id, tweet: formattedTweet, ...result });
-  });
-
-  const totalSentimentResult = sentimentResults.reduce(
-    (result, tweet) => {
-      result.score += tweet.score;
-      result.comparative += tweet.comparative;
-      if (tweet.score > 0) result.positive++;
-      if (tweet.score === 0) result.neutral++;
-      if (tweet.score < 0) result.negative++;
-      return result;
-    },
-    { score: 0, comparative: 0, positive: 0, neutral: 0, negative: 0 }
-  );
-
-  totalSentimentResult.score = (totalSentimentResult.score / sentimentResults.length).toFixed(3);
-  totalSentimentResult.comparative = (
-    totalSentimentResult.comparative / sentimentResults.length
-  ).toFixed(3);
-  totalSentimentResult.count = sentimentResults.length;
-
-  return { sentimentResults, totalSentimentResult };
-};
-
-io.on('connection', socket => {
-  socket.on('search', async searchString => {
-    const result = await analyzeTweets(searchString, socket);
-    if (result) {
-      socket.emit('status', {
-        message: `Done! Analyzed ${result.totalSentimentResult.count} tweets.`,
-        done: true,
-        error: false
-      });
-      socket.emit('analyzeResult', result);
-    }
-  });
 });

@@ -17,32 +17,32 @@ const columns = [
     label: 'Comparative',
     minWidth: 80,
     align: 'center',
-    format: value => value.toFixed(3)
+    format: (value) => value.toFixed(3),
   },
   {
     id: 'tokens',
     label: 'Total tokens',
     minWidth: 80,
     align: 'center',
-    format: value => value.length
+    format: (value) => value.length,
   },
   {
     id: 'positive',
     label: 'Positive tokens',
     minWidth: 170,
     align: 'right',
-    format: value => value.join(', ')
+    format: (value) => (Array.isArray(value) ? value.join(', ') : value),
   },
   {
     id: 'negative',
     label: 'Negative tokens',
     minWidth: 170,
     align: 'right',
-    format: value => value.join(', ')
-  }
+    format: (value) => (Array.isArray(value) ? value.join(', ') : value),
+  },
 ];
 
-const TweetsTable = ({ sentimentResults }) => {
+export default function TweetsTable({ sentimentResults }) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
@@ -50,7 +50,7 @@ const TweetsTable = ({ sentimentResults }) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = event => {
+  const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
@@ -61,7 +61,7 @@ const TweetsTable = ({ sentimentResults }) => {
         <Table stickyHeader aria-label="tweets table">
           <TableHead>
             <TableRow>
-              {columns.map(column => (
+              {columns.map((column) => (
                 <TableCell
                   key={column.id}
                   align={column.align}
@@ -78,7 +78,7 @@ const TweetsTable = ({ sentimentResults }) => {
               .map((row, i) => {
                 return (
                   <TableRow hover role="checkbox" tabIndex={-1} key={String(i)}>
-                    {columns.map(column => {
+                    {columns.map((column) => {
                       const value = row[column.id];
                       return (
                         <TableCell key={column.id} align={column.align}>
@@ -103,6 +103,4 @@ const TweetsTable = ({ sentimentResults }) => {
       />
     </Paper>
   );
-};
-
-export default TweetsTable;
+}

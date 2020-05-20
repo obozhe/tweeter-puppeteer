@@ -1,5 +1,7 @@
+@import '../../assets/scss/variables.scss';
+
 .search-panel-wrapper {
-  height: 100vh;
+  min-height: 100vh;
   background: $main-green;
   transition: 0.7s;
   box-shadow: 0px 5px 10px #0000004f;
@@ -68,9 +70,17 @@
   }
 
   &.collapsed {
+    min-height: 100px;
     height: 100px;
     font-size: 12px;
   }
+}
+
+.back-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: -70px;
 }
 
 @keyframes hide {

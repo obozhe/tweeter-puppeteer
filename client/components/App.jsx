@@ -1,14 +1,16 @@
 import React from 'react';
-import SearchPanel from './SearchPanel';
+import SearchPanel from './SearchPanel/SearchPanel';
 import socket from '../utils/socket';
 
 import { CSSTransition } from 'react-transition-group';
 
-import '../assets/scss/App.scss';
-import StatusHandler from './StatusHandler';
-import StatisticsPanel from './StatisticsPanel';
-import Error from './Error';
+import StatusHandler from './utils/StatusHandler';
+import StatisticsPanel from './StatisticsPanel/StatisticsPanel';
+import Error from './utils/Error';
 
+import RestController from '../utils/RestController';
+
+import './App.scss';
 export default class App extends React.Component {
   constructor() {
     super();
@@ -18,45 +20,57 @@ export default class App extends React.Component {
       showStatisticsPanel: false,
       statuses: [],
       result: null,
-      connected: true
+      connected: true,
+      savedResults: [],
     };
 
     this.socket = null;
     this.analyze = this.analyze.bind(this);
+    this.openSavedResults = this.openSavedResults.bind(this);
+    this.loadSavedResults = this.loadSavedResults.bind(this);
+    this.initState = this.initState.bind(this);
   }
 
   componentDidMount() {
-    this.socket = socket(connected => {
+    this.loadSavedResults();
+    this.socket = socket((connected) => {
       this.setState({ connected });
     });
 
-    this.socket.registerAnalyzeResults(result => {
-      console.log(result);
+    this.socket.registerAnalyzeResults((result) => {
       this.setState({ result, showStatusPanel: false });
     });
 
-    this.socket.registerStatusUpdating(status => {
+    this.socket.registerStatusUpdating((status) => {
       this.setState({ statuses: [...this.state.statuses, status] });
     });
+  }
 
-    this.socket.regImg(img => {
-      console.log(img);
-      var arrayBufferView = new Uint8Array(img);
-      var blob = new Blob([arrayBufferView], { type: 'image/jpeg' });
-      var urlCreator = window.URL || window.webkitURL;
-      var imageUrl = urlCreator.createObjectURL(blob);
-      var img = document.querySelector('#photo');
-      img.src = imageUrl;
-    });
+  componentWillUnmount() {
+    this.socket.unregister();
+  }
+
+  loadSavedResults() {
+    RestController.getResults().then((res) => this.setState({ savedResults: res.reverse() }));
   }
 
   analyze(searchValue) {
     this.setState({
       showStatisticsPanel: false,
       statuses: [],
-      showStatusPanel: true
+      showStatusPanel: true,
     });
     this.socket.startAnalyze(searchValue);
+  }
+
+  openSavedResults(resultId) {
+    RestController.getResultsById(resultId).then((result) =>
+      this.setState({ showStatisticsPanel: true, result })
+    );
+  }
+
+  initState() {
+    location.reload();
   }
 
   render() {
@@ -66,14 +80,20 @@ export default class App extends React.Component {
       showStatusPanel,
       showStatisticsPanel,
       connected,
-      loaded
+      savedResults,
     } = this.state;
     return (
       <div>
         {!connected && !result && <Error />}
-        <SearchPanel start={this.analyze} />
+        <SearchPanel
+          close={showStatisticsPanel || showStatusPanel}
+          start={this.analyze}
+          savedResults={savedResults}
+          openResults={this.openSavedResults}
+          loadResults={this.loadSavedResults}
+          backToInit={this.initState}
+        />
         <div className="main-section">
-          <img id="photo" src="" alt="" />
           <CSSTransition
             in={showStatusPanel}
             classNames="fade"

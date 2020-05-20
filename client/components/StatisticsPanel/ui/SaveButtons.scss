@@ -1,0 +1,19 @@
+@import '../../../assets/scss/variables.scss';
+
+.save-buttons {
+  text-align: right;
+  margin-top: 20px;
+
+  .save-buttons-bg {
+    width: fit-content;
+    margin-right: 0;
+    margin-left: auto;
+    padding: 10px 0 0 5px;
+    border-radius: 10px 10px 0 0;
+    background-color: #fafafa;
+    > button {
+      background-color: $main-green;
+      margin: 0 5px;
+    }
+  }
+}

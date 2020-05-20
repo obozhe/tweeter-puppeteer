@@ -1,6 +1,6 @@
 const io = require('socket.io-client');
 
-export default function(toogleConnectionState) {
+export default function (toogleConnectionState) {
   const port = DEVELOPMENT ? 'http://localhost:3000' : '';
   const socket = io.connect(port);
 
@@ -16,18 +16,22 @@ export default function(toogleConnectionState) {
     socket.on('analyzeResult', onResult);
   }
 
-  function regImg(img) {
-    socket.on('img', img);
-  }
-
   function registerStatusUpdating(onStatusUpdate) {
     socket.on('status', onStatusUpdate);
   }
 
+  function unregister() {
+    socket.off('analyzeResult');
+    socket.off('status');
+    socket.off('connect');
+    socket.off('disconnect');
+    socket.off('error');
+  }
+
   return {
-    regImg,
     startAnalyze,
     registerAnalyzeResults,
-    registerStatusUpdating
+    registerStatusUpdating,
+    unregister,
   };
 }
