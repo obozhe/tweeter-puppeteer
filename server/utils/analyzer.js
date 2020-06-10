@@ -34,7 +34,7 @@ const analyzeTweets = async (searchString, socket) => {
   totalSentimentResult.score = totalSentimentResult.score / sentimentResults.length;
   totalSentimentResult.comparative = totalSentimentResult.comparative / sentimentResults.length;
   totalSentimentResult.count = sentimentResults.length;
-  console.log(totalSentimentResult);
+
   return { sentimentResults, totalSentimentResult };
 };
 

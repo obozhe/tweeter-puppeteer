@@ -31,7 +31,7 @@ const initPage = async () => {
   );
   await page.setRequestInterception(true);
 
-  return page;
+  return { page, browser };
 };
 
 const handleUselessRequests = async (page) => {
@@ -64,7 +64,7 @@ async function getTweetsBySearch(searchString, socket) {
     } catch (e) {}
   };
 
-  const page = await initPage();
+  const { page, browser } = await initPage();
   await handleUselessRequests(page);
 
   await page.goto('https://twitter.com/explore');
@@ -92,6 +92,7 @@ async function getTweetsBySearch(searchString, socket) {
   const t1 = performance.now();
   console.log('Getting tweets: ' + ((t1 - t0) / 1000).toFixed(2) + ' seconds.');
 
+  await browser.close();
   return tweetsSet;
 }
 
